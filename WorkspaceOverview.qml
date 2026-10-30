@@ -9,6 +9,8 @@ Item {
   id: root
   property var groups: []
   property bool planAvailable: false
+  property bool plannerUnavailable: false
+  property bool plannerInstallNeeded: false
   property int focusedId: -1
   property string selectedName: ""
   property int keyboardId: focusedId
@@ -166,8 +168,16 @@ Item {
       font.family: Style.font.family; font.pixelSize: Style.font.caption
       color: Util.alpha(Commons.Color.foreground, 0.65)
     }
+    Text {
+      visible: root.plannerUnavailable
+      width: parent.width
+      text: strings.t("plannerFallback"); textFormat: Text.PlainText
+      wrapMode: Text.WordWrap
+      font.family: Style.font.family; font.pixelSize: Style.font.caption
+      color: Util.alpha(Commons.Color.foreground, 0.65)
+    }
     Button {
-      text: strings.t("configure")
+      text: root.plannerInstallNeeded ? strings.t("installPlanner") : strings.t("configure")
       onClicked: root.configureRequested()
     }
   }

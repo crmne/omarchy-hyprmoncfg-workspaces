@@ -7,6 +7,7 @@ import "WorkspaceModel.js" as Model
 ShellRoot {
   id: root
   property var commands: []
+  property var plannerRequests: []
   QtObject {
     id: host
     property bool vertical: false
@@ -32,6 +33,7 @@ ShellRoot {
     id: widget
     bar: host
     workspaceDispatcher: function(request) { root.commands.push(request) }
+    plannerLauncher: function(origin) { root.plannerRequests.push(origin) }
   }
   // It only subscribes to the local daemon, and has no mutation API.
   Plugin.WorkspaceService { id: service }
@@ -70,6 +72,14 @@ ShellRoot {
           root.assert(root.commands.length === 1, "button did not dispatch exactly once")
           root.assert(root.commands[0].indexOf(String(buttons[i].workspaceInfo.id)) >= 0, "button renumbered the workspace")
         }
+        widget.open()
+        root.assert(root.plannerRequests.length === 1 && root.plannerRequests[0].screen, "picker did not request the full planner on its monitor")
+        widget.finishPlannerOpen(true)
+        root.assert(!widget.opened, "successful planner launch also opened the fallback popup")
+        widget.open()
+        widget.close()
+        widget.finishPlannerOpen(false)
+        root.assert(!widget.opened, "a late launch failure reopened a dismissed popup")
         root.commands = []
         widget.focusWorkspace('4; bad')
         root.assert(root.commands.length === 0, "unsafe ID dispatched")

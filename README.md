@@ -6,10 +6,13 @@ between monitors. Click any number to focus it on its actual screen.
 
 The focused workspace has a small underline. Visible and occupied workspaces
 are bright, and empty workspaces are dimmed. Scroll within a group to switch
-that screen's workspaces. Right-click a number for an overview arranged like
-your monitors, including stacked and portrait displays. Extra numbers are
-available through the overview; the bar initially shows up to five per screen.
-The separate hyprmoncfg panel keeps its original icon.
+that screen's workspaces. Right-click a number to open just the **Workspaces**
+tab in a popup beside the picker: strategy, group size, monitor order, assignments,
+and the same Apply/Save and confirmation controls as the hyprmoncfg panel. It
+shares the existing editor and preview guard. It has no Layout or Profiles tabs.
+The workspace-plan numbers also switch workspaces, including numbers omitted from
+the compact bar. Finish drafts or previews before switching from the planner.
+The separate monitor panel keeps Omarchy's original icon size with an accent check.
 
 ## Install
 
@@ -20,7 +23,7 @@ omarchy plugin install https://github.com/crmne/omarchy-hyprmoncfg-workspaces
 This replaces the stock workspace widget through Omarchy's normal plugin
 mechanism. The original remains installed. Keep one workspace widget enabled:
 
-- **hyprmoncfg Workspaces** for grouped numbers and the spatial overview.
+- **hyprmoncfg Workspaces** for grouped numbers and the workspace planner popup.
 - [**Global Workspaces**](https://github.com/crmne/omarchy-global-workspaces) for
   the classic global-number picker.
 - **Omarchy Workspaces** for Omarchy's monitor-local workspace management.
@@ -36,15 +39,21 @@ choose Off in hyprmoncfg's workspace planner and use the stock widget.
 Requires Omarchy's Quickshell shell with plugin support and Hyprland. A hyprmoncfg
 development build after 1.25.1 supplies `workspace_plan` in its status stream to
 include assigned empty workspaces. Older or stopped daemons still allow switching
-existing workspaces. Configure displays opens the separately installed
-[hyprmoncfg panel](https://github.com/crmne/omarchy-hyprmoncfg).
+existing workspaces. The planner popup requires the separately installed
+[hyprmoncfg panel](https://github.com/crmne/omarchy-hyprmoncfg), with the UI route
+added on main after 2.10.1. Until it is available, the live spatial overview stays
+usable. It offers **Install planner** when the panel is missing or disabled, using
+Omarchy's normal interactive installer. An older panel can still be opened through
+Configure displays.
 
 One read-only subscription to `$XDG_RUNTIME_DIR/hyprmoncfgd.sock` supplies the
 plan. Quickshell supplies live compositor state. Existing workspace locations
 take precedence over assignments, so unplugging a screen does not leave false
 locations in the bar. Switching is a direct Hyprland IPC dispatch and never
-calls a daemon switching command or launches a shell process. No network calls,
-clipboard access, profile writes, or periodic workspace polling. Connection
+calls a daemon switching command or launches a shell process. No background network calls,
+clipboard access or periodic workspace polling. Installing the optional panel
+uses Omarchy's installer only after you choose Install planner. Configuration changes go through
+the panel's existing editor and its explicit Apply/Save confirmation. Connection
 retries run only while the daemon is unavailable.
 
 The widget currently presents positive numeric workspaces. Special and named

@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Io
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
@@ -23,17 +24,43 @@ BarWidget {
   property bool popoutSwitchClosing: false
   property real wheelAccumulator: 0
   property string wheelMonitor: ""
+  property bool plannerOpening: false
+  property bool plannerInstallNeeded: false
+  // The planner remains the panel's real editor, including its preview guard.
+  property var plannerLauncher: function(origin) {
+    plannerRequest.command = ["omarchy-shell", "crmne.hyprmoncfg.editor", "workspaces", JSON.stringify(origin)]
+    plannerRequest.running = true
+  }
   // The compositor boundary is injectable for real-QML interaction tests.
   property var workspaceDispatcher: function(request) { Hyprland.dispatch(request) }
 
   Commons.Translations { id: strings; directory: Qt.resolvedUrl("i18n") }
-  function open() { overview.keyboardId = root.focusedId; popup.open = true }
-  function close() { popup.open = false }
+  function plannerOrigin() {
+    var window = root.QsWindow.window
+    var origin = {screen: window && window.screen ? window.screen.name : (Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : "")}
+    if (window && root.width > 0 && root.height > 0) {
+      var point = root.mapToItem(window.contentItem,0,0)
+      origin.x=point.x; origin.y=point.y; origin.width=root.width; origin.height=root.height
+    }
+    return origin
+  }
+  function open() {
+    if (root.plannerOpening) return
+    overview.keyboardId = root.focusedId
+    root.plannerOpening = true
+    root.plannerLauncher(root.plannerOrigin())
+  }
+  function finishPlannerOpen(success) {
+    if (!root.plannerOpening) return
+    root.plannerOpening = false
+    if (!success) popup.open = true
+  }
+  function close() { root.plannerOpening = false; popup.open = false }
   function closeForPopoutSwitch() { root.close() }
   function toggleOverview(name) {
     overview.selectedName = name || ""
-    overview.keyboardId = root.focusedId
-    popup.open = !popup.open
+    if (popup.open) root.close()
+    else root.open()
   }
   function focusWorkspace(id) {
     var request = Model.focusRequest(id, Hyprland.usingLua)
@@ -67,6 +94,34 @@ BarWidget {
     function toggle(): void { root.toggleOverview("") }
     function refresh(): void { root.broadcast("refresh") }
   }
+
+  Process {
+    id: plannerRequest
+    stdout: StdioCollector { id: plannerOutput; waitForEnd: true }
+    onExited: function(exitCode) {
+      if (!root.plannerOpening) return
+      if (exitCode === 0 && plannerOutput.text.trim() === "ok") root.finishPlannerOpen(true)
+      else panelProbe.running = true
+    }
+  }
+  Process {
+    id: panelProbe
+    command: ["timeout", "5s", "omarchy", "plugin", "list", "--json"]
+    stdout: StdioCollector { id: panelOutput; waitForEnd: true }
+    onExited: function(exitCode) {
+      root.plannerInstallNeeded = false
+      if (exitCode === 0 && panelOutput.text.length < 1048576) {
+        try {
+          var entries = JSON.parse(panelOutput.text)
+          if (Array.isArray(entries)) root.plannerInstallNeeded = !entries.some(function(entry) {
+            return entry.id === "crmne.hyprmoncfg" && entry.enabled === true
+          })
+        } catch (_) {}
+      }
+      root.finishPlannerOpen(false)
+    }
+  }
+  Process { id: plannerInstaller }
 
   readonly property real trailingGap: root.vertical ? 0 : Style.spaceReal(1.5)
   implicitWidth: root.vertical ? root.barSize : row.implicitWidth + root.trailingGap
@@ -132,12 +187,18 @@ BarWidget {
       groups: root.groups
       focusedId: root.focusedId
       planAvailable: root.planAvailable
+      plannerUnavailable: true
+      plannerInstallNeeded: root.plannerInstallNeeded
       canvasHeight: Math.min(Style.space(230), (root.QsWindow.window ? root.QsWindow.window.screen.height : 800) * 0.35)
       onChosen: function(id) { root.focusWorkspace(id) }
       onCloseRequested: root.close()
       onConfigureRequested: {
         root.close()
-        if (root.bar) root.bar.run("omarchy-shell shell summon crmne.hyprmoncfg '{}'")
+        if (root.plannerInstallNeeded) {
+          plannerInstaller.command = ["omarchy", "launch", "floating", "terminal", "with", "presentation",
+            "omarchy plugin add https://github.com/crmne/omarchy-hyprmoncfg"]
+        } else plannerInstaller.command = ["omarchy-shell", "shell", "summon", "crmne.hyprmoncfg", "{}"]
+        Qt.callLater(function() { plannerInstaller.startDetached() })
       }
     }
   }

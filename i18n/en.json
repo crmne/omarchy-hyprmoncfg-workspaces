@@ -6,5 +6,7 @@
   "more": "Show all workspaces on %1",
   "display": "Display %1",
   "workspace": "Workspace %1 on %2",
-  "close": "Close"
+  "close": "Close",
+  "plannerFallback": "Install or update the hyprmoncfg panel for the full workspace planner.",
+  "installPlanner": "Install planner"
 }
