@@ -1,0 +1,10 @@
+{
+  "overview": "Workspaces",
+  "configure": "Configure displays",
+  "liveOnly": "Showing live workspaces. Start or update hyprmoncfg to include empty assigned workspaces.",
+  "empty": "No independent displays available",
+  "more": "Show all workspaces on %1",
+  "display": "Display %1",
+  "workspace": "Workspace %1 on %2",
+  "close": "Close"
+}

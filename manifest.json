@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "crmne.hyprmoncfg-workspaces",
+  "name": "hyprmoncfg Workspaces",
+  "version": "0.1.0",
+  "author": "Carmine Paolino",
+  "license": "MIT",
+  "description": "Workspaces grouped by their screens, with a live overview of your monitor arrangement.",
+  "kinds": ["bar-widget", "service"],
+  "entryPoints": { "barWidget": "Workspaces.qml", "service": "WorkspaceService.qml" },
+  "barWidget": {
+    "displayName": "hyprmoncfg Workspaces", "description": "Grouped workspaces and a spatial overview", "category": "Compositor", "allowMultiple": false,
+    "defaultSection": "left",
+    "schema": [{ "key": "maxVisiblePerMonitor", "type": "integer", "label": "Numbers per monitor", "description": "Additional workspaces stay available in the overview.", "defaultValue": 5, "minimum": 1, "maximum": 12 }],
+    "defaults": { "maxVisiblePerMonitor": 5 }
+  },
+  "omarchy": { "clonedFrom": "omarchy.workspaces" }
+}
