@@ -9,8 +9,7 @@ Item {
   id: root
   property var groups: []
   property bool planAvailable: false
-  property bool plannerUnavailable: false
-  property bool plannerInstallNeeded: false
+  property string panelSetupState: "unknown"
   property int focusedId: -1
   property string selectedName: ""
   property int keyboardId: focusedId
@@ -169,16 +168,15 @@ Item {
       color: Util.alpha(Commons.Color.foreground, 0.65)
     }
     Text {
-      visible: root.plannerUnavailable
       width: parent.width
-      text: strings.t("plannerFallback"); textFormat: Text.PlainText
+      text: strings.t("setup." + root.panelSetupState); textFormat: Text.PlainText
       wrapMode: Text.WordWrap
       font.family: Style.font.family; font.pixelSize: Style.font.caption
       color: Util.alpha(Commons.Color.foreground, 0.65)
     }
     Button {
-      text: root.plannerInstallNeeded ? strings.t("installPlanner") : "hyprmoncfg"
-      tooltipText: root.plannerInstallNeeded ? "" : strings.t("configure")
+      text: root.panelSetupState === "unavailable" ? "hyprmoncfg" : strings.t("setupAction." + root.panelSetupState)
+      tooltipText: root.panelSetupState === "unavailable" ? strings.t("configure") : ""
       focusable: true
       onClicked: root.configureRequested()
     }

@@ -7,6 +7,7 @@ import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
 import "WorkspaceModel.js" as Model
+import "PanelSetup.js" as Setup
 
 BarWidget {
   id: root
@@ -25,7 +26,8 @@ BarWidget {
   property real wheelAccumulator: 0
   property string wheelMonitor: ""
   property bool plannerOpening: false
-  property bool plannerInstallNeeded: false
+  property string panelSetupState: "unknown"
+  readonly property string setupScript: decodeURIComponent(String(Qt.resolvedUrl("scripts/setup-panel.rb")).replace(/^file:\/\//, ""))
   // The planner remains the panel's real editor, including its preview guard.
   property var plannerLauncher: function(origin) {
     plannerRequest.command = ["omarchy-shell", "crmne.hyprmoncfg.editor", "workspaces", JSON.stringify(origin)]
@@ -56,6 +58,19 @@ BarWidget {
     if (!success) popup.open = true
   }
   function close() { root.plannerOpening = false; popup.open = false }
+  function setupPanel() {
+    var action = Setup.action(root.panelSetupState)
+    if (action === "retry") { root.open(); return }
+    var origin = JSON.stringify(root.plannerOrigin())
+    root.close()
+    if (action === "open") {
+      plannerInstaller.command = ["omarchy-shell", "shell", "summon", "crmne.hyprmoncfg", "{}"]
+    } else {
+      plannerInstaller.command = ["omarchy", "launch", "floating", "terminal", "with", "presentation",
+        "ruby " + Util.shellQuote(root.setupScript) + " " + action + " " + Util.shellQuote(origin)]
+    }
+    Qt.callLater(function() { plannerInstaller.startDetached() })
+  }
   function closeForPopoutSwitch() { root.close() }
   function toggleOverview(name) {
     overview.selectedName = name || ""
@@ -109,15 +124,7 @@ BarWidget {
     command: ["timeout", "5s", "omarchy", "plugin", "list", "--json"]
     stdout: StdioCollector { id: panelOutput; waitForEnd: true }
     onExited: function(exitCode) {
-      root.plannerInstallNeeded = false
-      if (exitCode === 0 && panelOutput.text.length < 1048576) {
-        try {
-          var entries = JSON.parse(panelOutput.text)
-          if (Array.isArray(entries)) root.plannerInstallNeeded = !entries.some(function(entry) {
-            return entry.id === "crmne.hyprmoncfg" && entry.enabled === true
-          })
-        } catch (_) {}
-      }
+      root.panelSetupState = Setup.state(panelOutput.text, exitCode, plannerOutput.text.trim())
       root.finishPlannerOpen(false)
     }
   }
@@ -187,19 +194,11 @@ BarWidget {
       groups: root.groups
       focusedId: root.focusedId
       planAvailable: root.planAvailable
-      plannerUnavailable: true
-      plannerInstallNeeded: root.plannerInstallNeeded
+      panelSetupState: root.panelSetupState
       canvasHeight: Math.min(Style.space(230), (root.QsWindow.window ? root.QsWindow.window.screen.height : 800) * 0.35)
       onChosen: function(id) { root.focusWorkspace(id) }
       onCloseRequested: root.close()
-      onConfigureRequested: {
-        root.close()
-        if (root.plannerInstallNeeded) {
-          plannerInstaller.command = ["omarchy", "launch", "floating", "terminal", "with", "presentation",
-            "omarchy plugin add https://github.com/crmne/omarchy-hyprmoncfg"]
-        } else plannerInstaller.command = ["omarchy-shell", "shell", "summon", "crmne.hyprmoncfg", "{}"]
-        Qt.callLater(function() { plannerInstaller.startDetached() })
-      }
+      onConfigureRequested: root.setupPanel()
     }
   }
 }

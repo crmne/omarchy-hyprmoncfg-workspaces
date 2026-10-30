@@ -12,7 +12,7 @@ FileUtils.mkdir_p(cache)
 Dir.mktmpdir('runtime-', cache) do |stage|
   %w[Ui Commons].each { |dir| File.symlink(File.join(shell, dir), File.join(stage, dir)) }
   Dir.glob(File.join(root, '*.qml')).each { |path| FileUtils.cp(path, stage) }
-  FileUtils.cp(File.join(root, 'WorkspaceModel.js'), stage)
+  Dir.glob(File.join(root, '*.js')).each { |path| FileUtils.cp(path, stage) }
   FileUtils.cp_r(File.join(root, 'i18n'), stage)
   FileUtils.cp(File.join(__dir__, 'runtime.qml'), File.join(stage, 'shell.qml'))
   output, result = Open3.capture2e(

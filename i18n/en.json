@@ -7,6 +7,13 @@
   "display": "Display %1",
   "workspace": "Workspace %1 on %2",
   "close": "Close",
-  "plannerFallback": "Install or update the hyprmoncfg panel for the full workspace planner.",
-  "installPlanner": "Install hyprmoncfg"
+  "setup.missing": "Install the hyprmoncfg panel for workspace and display settings. It also guides you through installing hyprmoncfg if needed.",
+  "setup.disabled": "Enable the hyprmoncfg panel to configure workspaces and finish setup.",
+  "setup.outdated": "Update the hyprmoncfg panel to use the workspace planner and its setup controls.",
+  "setup.unavailable": "Open hyprmoncfg to finish setup, then reopen this picker.",
+  "setup.unknown": "Could not check the hyprmoncfg panel. Try again.",
+  "setupAction.missing": "Install hyprmoncfg panel",
+  "setupAction.disabled": "Enable hyprmoncfg panel",
+  "setupAction.outdated": "Update hyprmoncfg panel",
+  "setupAction.unknown": "Try again"
 }

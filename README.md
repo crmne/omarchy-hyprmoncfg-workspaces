@@ -11,7 +11,7 @@ tab in a popup beside the picker: strategy, group size, monitor order, assignmen
 and the same Apply/Save and confirmation controls as the hyprmoncfg panel. It
 shares the existing editor and preview guard. It has no Layout or Profiles tabs.
 Choose **hyprmoncfg**, beside Identify all, to open the full display editor on
-Layout without losing workspace edits or an active preview.
+Layout from the display panel's own bar icon, without losing workspace edits or an active preview.
 The workspace-plan numbers also switch workspaces, including numbers omitted from
 the compact bar. Finish drafts or previews before switching from the planner.
 The separate monitor panel keeps Omarchy's original icon size with an accent check.
@@ -44,9 +44,18 @@ include assigned empty workspaces. Older or stopped daemons still allow switchin
 existing workspaces. The planner popup requires the separately installed
 [hyprmoncfg panel](https://github.com/crmne/omarchy-hyprmoncfg), with the UI route
 added on main after 2.10.1. Until it is available, the live spatial overview stays
-usable. It offers **Install hyprmoncfg** when the panel is missing or disabled, using
-Omarchy's normal interactive installer. An older panel can still be opened through
-the **hyprmoncfg** button.
+usable. Setup has two stages:
+
+1. **Install hyprmoncfg panel**, **Enable hyprmoncfg panel**, or **Update hyprmoncfg
+   panel**, according to what is missing. Omarchy's normal interactive installer
+   keeps its trust, enablement and placement questions. Enabling the panel opens
+   the next step automatically.
+2. The panel's existing **Install hyprmoncfg** or **Update hyprmoncfg** screen adds
+   the daemon when needed, with the same progress, error handling and presented
+   terminal as the display panel. A stopped daemon gets its normal service controls.
+
+Once ready, the picker shows the Workspaces planner and the **hyprmoncfg** shortcut
+opens the full display panel. The picker never maintains a second package installer.
 
 One read-only subscription to `$XDG_RUNTIME_DIR/hyprmoncfgd.sock` supplies the
 plan. Quickshell supplies live compositor state. Existing workspace locations
@@ -54,7 +63,9 @@ take precedence over assignments, so unplugging a screen does not leave false
 locations in the bar. Switching is a direct Hyprland IPC dispatch and never
 calls a daemon switching command or launches a shell process. No background network calls,
 clipboard access or periodic workspace polling. Installing the optional panel
-uses Omarchy's installer only after you choose Install hyprmoncfg. Configuration changes go through
+uses Omarchy's installer only after you choose a panel setup action. The Ruby helper
+uses local plugin discovery and waits briefly for the reloaded panel to open.
+Configuration changes go through
 the panel's existing editor and its explicit Apply/Save confirmation. Connection
 retries run only while the daemon is unavailable.
 
@@ -78,6 +89,7 @@ node --test tests/*.test.js
 omarchy plugin validate .
 ruby tests/runtime.rb
 ruby tests/reconnect.rb
+ruby tests/setup-panel.rb
 ```
 
 The runtime test uses real Qt/Omarchy components in a Hyprland session with
