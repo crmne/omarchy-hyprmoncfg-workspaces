@@ -38,12 +38,11 @@ choose Off in hyprmoncfg's workspace planner and use the stock widget.
 
 ## Requirements and data
 
-Requires Omarchy's Quickshell shell with plugin support and Hyprland. A hyprmoncfg
-development build after 1.25.1 supplies `workspace_plan` in its status stream to
+Requires Omarchy's Quickshell shell with plugin support and Hyprland. hyprmoncfg
+1.26.0 or newer supplies `workspace_plan` in its status stream to
 include assigned empty workspaces. Older or stopped daemons still allow switching
 existing workspaces. The planner popup requires the separately installed
-[hyprmoncfg panel](https://github.com/crmne/omarchy-hyprmoncfg), with the UI route
-added on main after 2.10.1. Until it is available, the live spatial overview stays
+[hyprmoncfg panel](https://github.com/crmne/omarchy-hyprmoncfg), version 2.11.0 or newer. Until it is available, the live spatial overview stays
 usable. Setup has two stages:
 
 1. **Install hyprmoncfg panel**, **Enable hyprmoncfg panel**, or **Update hyprmoncfg
