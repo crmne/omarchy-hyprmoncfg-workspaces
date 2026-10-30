@@ -63,15 +63,18 @@ Re-enable your preferred workspace widget through Omarchy's bar settings.
 
 ```sh
 node --test tests/*.test.js
-qmllint *.qml
+/usr/lib/qt6/bin/qmllint --max-warnings -1 *.qml
 omarchy plugin validate .
 ruby tests/runtime.rb
+ruby tests/reconnect.rb
 ```
 
 The runtime test uses real Qt/Omarchy components in a Hyprland session with
 workspace dispatches captured. It never injects keyboard or mouse input or
 changes the monitor configuration. The model tests cover three-screen and
 stacked arrangements, rotation, scaling, mirrors, unplugging, connector reuse,
-stopped/older daemons, and global IDs above ten.
+stopped/older daemons, and global IDs above ten. The reconnect test runs the
+production service against an isolated local socket, checks ten peer closures
+and re-subscriptions, and never contacts your running daemon.
 
 MIT licensed. Uses Omarchy's standard UI components and theme.

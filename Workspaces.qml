@@ -137,7 +137,7 @@ BarWidget {
       onCloseRequested: root.close()
       onConfigureRequested: {
         root.close()
-        if (root.bar) root.bar.run("omarchy-shell shell summon crmne.hyprmoncfg")
+        if (root.bar) root.bar.run("omarchy-shell shell summon crmne.hyprmoncfg '{}'")
       }
     }
   }

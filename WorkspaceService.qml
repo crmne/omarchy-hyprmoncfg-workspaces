@@ -58,7 +58,11 @@ Item {
       else { root.ready = false; responseTimeout.stop(); retrySubscribe.stop() }
     }
     parser: SplitParser { onRead: function(data) { root.receive(data) } }
-    onError: function(error) { socket.connected = false }
+    onError: function(error) {
+      // Quickshell is still delivering the socket error. Defer teardown until
+      // that callback returns, as the panel and preview guard do.
+      Qt.callLater(function() { socket.connected = false })
+    }
   }
   Timer {
     interval: 2000
