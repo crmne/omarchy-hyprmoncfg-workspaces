@@ -177,7 +177,9 @@ Item {
       color: Util.alpha(Commons.Color.foreground, 0.65)
     }
     Button {
-      text: root.plannerInstallNeeded ? strings.t("installPlanner") : strings.t("configure")
+      text: root.plannerInstallNeeded ? strings.t("installPlanner") : "hyprmoncfg"
+      tooltipText: root.plannerInstallNeeded ? "" : strings.t("configure")
+      focusable: true
       onClicked: root.configureRequested()
     }
   }

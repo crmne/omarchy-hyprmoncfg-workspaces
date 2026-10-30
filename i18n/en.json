@@ -8,5 +8,5 @@
   "workspace": "Workspace %1 on %2",
   "close": "Close",
   "plannerFallback": "Install or update the hyprmoncfg panel for the full workspace planner.",
-  "installPlanner": "Install planner"
+  "installPlanner": "Install hyprmoncfg"
 }
