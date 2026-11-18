@@ -4,7 +4,9 @@ The bar stays as quiet and compact as Omarchy's own workspace widget. Use
 plain global numbers, standard 20-pixel slots and 1-pixel spacing, plus the
 standard 6-pixel separator between monitor groups. Scale these values through
 Omarchy's theme. No group backgrounds, borders, or extra layout icon. A small
-underline marks focus; occupancy and visibility control brightness. Keep the
+underline marks focus; occupancy and visibility control brightness. The
+optional `accentFocused` setting marks focus with the theme's accent colour
+and semibold instead of the underline, still without backgrounds or borders. Keep the
 separate hyprmoncfg monitor panel's original icon.
 
 Order groups left to right, then top to bottom when their horizontal positions

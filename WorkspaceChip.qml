@@ -8,6 +8,11 @@ WidgetButton {
   property var workspaceInfo: ({ id: 1, focused: false, visible: false, occupied: false })
   property string displayName: ""
   property bool keyboardSelected: false
+  // Marks the focused workspace with the theme's accent colour and semibold
+  // instead of the underline.
+  property bool accentFocused: false
+  readonly property bool accented: accentFocused && workspaceInfo.focused === true
+  readonly property alias weightedLabel: labelWeight.label
   signal chosen(int workspaceId)
   signal overviewRequested()
   text: String(workspaceInfo.id)
@@ -15,7 +20,7 @@ WidgetButton {
   fixedHeight: bar ? bar.barSize : Style.space(28)
   horizontalMargin: 6
   verticalPadding: 6
-  foreground: Commons.Color.foreground
+  foreground: accented ? Commons.Color.accent : Commons.Color.foreground
   opacity: workspaceInfo.focused || workspaceInfo.visible || workspaceInfo.occupied || workspaceInfo.urgent ? 1 : 0.5
   tooltipText: String(workspaceInfo.id) + " · " + displayName
   activeFocusOnTab: true
@@ -29,8 +34,14 @@ WidgetButton {
   Keys.onReturnPressed: root.chosen(root.workspaceInfo.id)
   Keys.onSpacePressed: root.chosen(root.workspaceInfo.id)
 
+  LabelWeight {
+    id: labelWeight
+    button: root
+    weight: root.accented ? Font.DemiBold : Font.Normal
+  }
+
   Rectangle {
-    visible: root.workspaceInfo.focused || root.keyboardSelected || root.activeFocus
+    visible: (root.workspaceInfo.focused && !root.accented) || root.keyboardSelected || root.activeFocus
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.bottom
     anchors.bottomMargin: root.bar ? 2 : 0

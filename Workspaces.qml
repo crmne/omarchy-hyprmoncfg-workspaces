@@ -21,6 +21,7 @@ BarWidget {
   readonly property int focusedId: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : -1
   readonly property var groups: Model.groups(root.document, Hyprland.monitors.values, Hyprland.workspaces.values, root.focusedId)
   readonly property int limit: Math.max(1, Math.min(12, Number(root.setting("maxVisiblePerMonitor", 5)) || 5))
+  readonly property bool accentFocused: root.setting("accentFocused", false) === true
   readonly property bool opened: popup.open
   property bool popoutSwitchClosing: false
   property real wheelAccumulator: 0
@@ -160,6 +161,7 @@ BarWidget {
               required property var modelData
               bar: root.bar
               workspaceInfo: modelData
+              accentFocused: root.accentFocused
               displayName: Model.plain(group.modelData.name)
               onChosen: function(id) { root.focusWorkspace(id) }
               onOverviewRequested: root.toggleOverview(group.modelData.name)

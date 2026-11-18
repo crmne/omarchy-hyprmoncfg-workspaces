@@ -4,8 +4,10 @@ See where your workspaces are. Plain numbers are grouped by screen in the bar:
 `1 2 3   4 5 6`. They use Omarchy's normal size and spacing, with a small gap
 between monitors. Click any number to focus it on its actual screen.
 
-The focused workspace has a small underline. Visible and occupied workspaces
-are bright, and empty workspaces are dimmed. Scroll within a group to switch
+The focused workspace has a small underline, or, with `"accentFocused": true`
+in the widget's `shell.json` entry, its number in the theme's accent colour
+and semibold. Visible and occupied workspaces are bright, and empty
+workspaces are dimmed. Scroll within a group to switch
 that screen's workspaces. Right-click a number to open just the **Workspaces**
 tab in a popup beside the picker: strategy, group size, monitor order, assignments,
 and the same Apply/Save and confirmation controls as the hyprmoncfg panel. It

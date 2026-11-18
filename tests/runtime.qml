@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
+import qs.Commons as Commons
 import "." as Plugin
 import "WorkspaceModel.js" as Model
 
@@ -72,6 +73,17 @@ ShellRoot {
           root.assert(root.commands.length === 1, "button did not dispatch exactly once")
           root.assert(root.commands[0].indexOf(String(buttons[i].workspaceInfo.id)) >= 0, "button renumbered the workspace")
         }
+        var focusedChip = buttons.filter(function(b) { return b.workspaceInfo.focused })[0]
+        var otherChip = buttons.filter(function(b) { return !b.workspaceInfo.focused })[0]
+        root.assert(focusedChip, "no focused workspace button")
+        root.assert(focusedChip.weightedLabel !== null, "LabelWeight did not find WidgetButton's label")
+        root.assert(Qt.colorEqual(focusedChip.foreground, Commons.Color.foreground) && focusedChip.weightedLabel.font.weight === Font.Normal, "focus was accented with the setting off")
+        widget.settings = {accentFocused: true}
+        root.assert(Qt.colorEqual(focusedChip.foreground, Commons.Color.accent), "accentFocused did not colour the focused workspace")
+        root.assert(focusedChip.weightedLabel.font.weight === Font.DemiBold, "accentFocused did not set the focused workspace in semibold")
+        if (otherChip) root.assert(Qt.colorEqual(otherChip.foreground, Commons.Color.foreground) && otherChip.weightedLabel.font.weight === Font.Normal, "accentFocused styled an unfocused workspace")
+        widget.settings = {}
+        root.assert(focusedChip.weightedLabel.font.weight === Font.Normal, "turning accentFocused off kept the semibold")
         widget.open()
         root.assert(root.plannerRequests.length === 1 && root.plannerRequests[0].screen, "picker did not request the full planner on its monitor")
         widget.finishPlannerOpen(true)

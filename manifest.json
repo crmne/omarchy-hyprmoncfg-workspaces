@@ -11,8 +11,9 @@
   "barWidget": {
     "displayName": "hyprmoncfg Workspaces", "description": "Grouped workspaces and a spatial overview", "category": "Compositor", "allowMultiple": false,
     "defaultSection": "left",
-    "schema": [{ "key": "maxVisiblePerMonitor", "type": "integer", "label": "Numbers per monitor", "description": "Additional workspaces stay available in the overview.", "defaultValue": 5, "minimum": 1, "maximum": 12 }],
-    "defaults": { "maxVisiblePerMonitor": 5 }
+    "schema": [{ "key": "maxVisiblePerMonitor", "type": "integer", "label": "Numbers per monitor", "description": "Additional workspaces stay available in the overview.", "defaultValue": 5, "minimum": 1, "maximum": 12 },
+               { "key": "accentFocused", "type": "boolean", "label": "Accent the focused workspace", "description": "Sets the focused workspace's number in the theme's accent colour and semibold instead of underlining it.", "defaultValue": false }],
+    "defaults": { "maxVisiblePerMonitor": 5, "accentFocused": false }
   },
   "omarchy": { "clonedFrom": "omarchy.workspaces" }
 }
