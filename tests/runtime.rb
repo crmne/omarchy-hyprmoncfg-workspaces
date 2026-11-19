@@ -22,6 +22,6 @@ Dir.mktmpdir('runtime-', cache) do |stage|
     warn output
     abort 'Workspace runtime test failed'
   end
-  puts 'Workspace runtime passed: actual Qt delegates, direct compositor commands, scroll, and IPC recovery'
+  puts 'Workspace runtime passed: actual Qt delegates, direct compositor commands, scroll, IPC recovery, and per display mode'
 end
 Dir.rmdir(cache) if Dir.empty?(cache)

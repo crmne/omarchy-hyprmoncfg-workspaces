@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "crmne.hyprmoncfg-workspaces",
   "name": "hyprmoncfg Workspaces",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "Carmine Paolino",
   "license": "MIT",
   "description": "Workspaces grouped by their screens, with a live overview of your monitor arrangement.",
@@ -12,7 +12,7 @@
     "displayName": "hyprmoncfg Workspaces", "description": "Grouped workspaces and a spatial overview", "category": "Compositor", "allowMultiple": false,
     "defaultSection": "left",
     "schema": [{ "key": "maxVisiblePerMonitor", "type": "integer", "label": "Numbers per monitor", "description": "Additional workspaces stay available in the overview.", "defaultValue": 5, "minimum": 1, "maximum": 12 },
-               { "key": "accentFocused", "type": "boolean", "label": "Accent the focused workspace", "description": "Sets the focused workspace's number in the theme's accent colour and semibold instead of underlining it.", "defaultValue": false }],
+               { "key": "accentFocused", "type": "boolean", "label": "Accent the focused workspace", "description": "Sets the focused workspace's number in the theme's accent colour and bold instead of underlining it.", "defaultValue": false }],
     "defaults": { "maxVisiblePerMonitor": 5, "accentFocused": false }
   },
   "omarchy": { "clonedFrom": "omarchy.workspaces" }

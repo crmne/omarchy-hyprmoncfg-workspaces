@@ -38,6 +38,41 @@ BarWidget {
   property var workspaceDispatcher: function(request) { Hyprland.dispatch(request) }
 
   Commons.Translations { id: strings; directory: Qt.resolvedUrl("i18n") }
+
+  // Per display mode. When hyprmoncfg's status has per_display_workspaces,
+  // each bar shows only its own display's block and works like Omarchy's
+  // stock workspace widget (shell/plugins/bar/widgets/Workspaces.qml in
+  // Omarchy, MIT licensed), whose logic this mirrors. hyprmoncfg, not
+  // Omarchy's state file, says which block each display owns, so it also
+  // works where hyprmoncfg runs the workspaces itself, as before Omarchy 4.5.
+  readonly property var perDisplay: Model.perDisplay(root.document)
+  readonly property var monitor: {
+    var window = root.QsWindow.window
+    var screen = window ? window.screen : null
+    return screen ? Hyprland.monitorFor(screen) : Hyprland.focusedMonitor
+  }
+  readonly property string monitorName: root.monitor ? root.monitor.name : ""
+  readonly property int activeWorkspaceId: root.monitor && root.monitor.activeWorkspace ? root.monitor.activeWorkspace.id : -1
+  readonly property int displayBlock: Model.displayBlock(root.perDisplay, root.monitorName, root.activeWorkspaceId)
+  readonly property var displayEntries: Model.displayEntries(root.perDisplay, root.monitorName, root.activeWorkspaceId, Hyprland.workspaces.values, root.focusedId)
+  readonly property var displayIds: root.displayEntries.map(function(entry) { return entry.id })
+
+  function focusDisplayWorkspace(id) {
+    var request = Model.displayFocusRequest(root.perDisplay, root.displayBlock, root.monitorName, id, Hyprland.usingLua)
+    if (request) {
+      root.close()
+      root.workspaceDispatcher(request)
+    }
+  }
+  function scrollDisplay(delta) {
+    var wheel = Util.wheelSteps(root.wheelAccumulator, delta)
+    root.wheelAccumulator = wheel.remainder
+    if (wheel.steps === 0) return
+    var target = Model.displayScrollTarget(root.displayIds, root.activeWorkspaceId, wheel.steps)
+    if (target !== null) root.focusDisplayWorkspace(target)
+  }
+  onPerDisplayChanged: root.wheelAccumulator = 0
+
   function plannerOrigin() {
     var window = root.QsWindow.window
     var origin = {screen: window && window.screen ? window.screen.name : (Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : "")}
@@ -132,10 +167,42 @@ BarWidget {
   Process { id: plannerInstaller }
 
   readonly property real trailingGap: root.vertical ? 0 : Style.spaceReal(1.5)
-  implicitWidth: root.vertical ? root.barSize : row.implicitWidth + root.trailingGap
-  implicitHeight: root.vertical ? row.implicitHeight : root.barSize
+  readonly property Item activeRow: root.perDisplay ? displayRow : row
+  implicitWidth: root.vertical ? root.barSize : root.activeRow.implicitWidth + root.trailingGap
+  implicitHeight: root.vertical ? root.activeRow.implicitHeight : root.barSize
+  // Per display mode: this display's own numbers, laid out as the stock
+  // widget lays them out.
+  GridLayout {
+    id: displayRow
+    visible: root.perDisplay !== null
+    anchors.fill: parent
+    anchors.rightMargin: root.trailingGap
+    columns: root.vertical ? 1 : Math.max(1, root.displayEntries.length)
+    columnSpacing: root.vertical ? 0 : Style.space(1)
+    rowSpacing: root.vertical ? Style.space(2) : 0
+    Repeater {
+      model: root.perDisplay ? root.displayEntries : []
+      WorkspaceChip {
+        required property var modelData
+        // A gap sets visiting workspaces apart from the display's own.
+        Layout.leftMargin: modelData.firstGuest && !root.vertical ? Style.space(6) : 0
+        Layout.topMargin: modelData.firstGuest && root.vertical ? Style.space(6) : 0
+        bar: root.bar
+        workspaceInfo: modelData
+        // Each display marks the workspace it shows, focused or not.
+        highlighted: modelData.visible
+        accentFocused: root.accentFocused
+        fixedWidth: root.vertical ? root.barSize : Style.space(20)
+        displayName: Model.plain(root.monitorName)
+        onChosen: function(id) { root.focusDisplayWorkspace(id) }
+        onOverviewRequested: root.toggleOverview(root.monitorName)
+        onWheelMoved: function(delta) { root.scrollDisplay(delta) }
+      }
+    }
+  }
   GridLayout {
     id: row
+    visible: root.perDisplay === null
     anchors.fill: parent
     anchors.rightMargin: root.trailingGap
     columns: root.vertical ? 1 : Math.max(1, root.groups.length)
@@ -144,7 +211,7 @@ BarWidget {
     columnSpacing: Style.space(1) + Style.space(6)
     rowSpacing: Style.space(2) + Style.space(6)
     Repeater {
-      model: root.groups
+      model: root.perDisplay ? [] : root.groups
       Item {
         id: group
         required property var modelData

@@ -4,9 +4,21 @@ See where your workspaces are. Plain numbers are grouped by screen in the bar:
 `1 2 3   4 5 6`. They use Omarchy's normal size and spacing, with a small gap
 between monitors. Click any number to focus it on its actual screen.
 
-The focused workspace has a small underline, or, with `"accentFocused": true`
-in the widget's `shell.json` entry, its number in the theme's accent colour
-and semibold. Visible and occupied workspaces are bright, and empty
+With hyprmoncfg's **Per display** workspace strategy, the bar looks and works
+like Omarchy's own workspace widget, fed by hyprmoncfg. Each screen's bar shows
+only that screen's workspaces, numbered `1 2 3` with slot ten as `0`: the first
+five slots (fewer if the screen has fewer), any others in use, then, after a
+gap, workspaces visiting from an unplugged screen. Each bar highlights the
+workspace its screen shows, with the underline or, with `accentFocused`, the
+accent colour. Clicking a slot switches to it the way Omarchy does, and
+scrolling, up and down or sideways, moves along the screen's own row. hyprmoncfg says which block of ten
+each screen owns, so this also works on Omarchy before 4.5, where hyprmoncfg
+runs per display workspaces itself. Right-click still opens the workspace
+planner.
+
+In the grouped view the focused workspace has a small underline, or, with
+`"accentFocused": true` in the widget's `shell.json` entry, its number in the
+theme's accent colour and bold. Visible and occupied workspaces are bright, and empty
 workspaces are dimmed. Scroll within a group to switch
 that screen's workspaces. Right-click a number to open just the **Workspaces**
 tab in a popup beside the picker: strategy, group size, monitor order, assignments,
@@ -27,7 +39,8 @@ omarchy plugin install https://github.com/crmne/omarchy-hyprmoncfg-workspaces
 This replaces the stock workspace widget through Omarchy's normal plugin
 mechanism. The original remains installed. Keep one workspace widget enabled:
 
-- **hyprmoncfg Workspaces** for grouped numbers and the workspace planner popup.
+- **hyprmoncfg Workspaces** for grouped numbers (Omarchy's per screen bar with
+  the Per display strategy) and the workspace planner popup.
 - [**Global Workspaces**](https://github.com/crmne/omarchy-global-workspaces) for
   the classic global-number picker.
 - **Omarchy Workspaces** for Omarchy's monitor-local workspace management.
@@ -35,14 +48,19 @@ mechanism. The original remains installed. Keep one workspace widget enabled:
 These are presentation choices. The plugin does not change your monitor layout,
 workspace assignments, ownership, shortcuts, or saved profiles. Global widgets
 should be paired with global shortcuts, such as hyprmoncfg's enabled workspace
-planner on a compatible build. To use Omarchy's management instead, explicitly
+planner on a compatible build. With the **Per display** strategy, this widget
+stands in for Omarchy's own: it numbers each screen 1-10 like Omarchy's
+shortcuts do and adds the planner popup. To use Omarchy's management instead, explicitly
 choose Off in hyprmoncfg's workspace planner and use the stock widget.
 
 ## Requirements and data
 
 Requires Omarchy's Quickshell shell with plugin support and Hyprland. hyprmoncfg
 1.26.0 or newer supplies `workspace_plan` in its status stream to
-include assigned empty workspaces. Older or stopped daemons still allow switching
+include assigned empty workspaces, and a hyprmoncfg build with the per display
+strategy adds `per_display_workspaces` (block size, slots per screen, each
+screen's block, and whether Omarchy runs the workspaces) for the per screen
+bar. Without it, numbers stay global and grouped. Older or stopped daemons still allow switching
 existing workspaces. The planner popup requires the separately installed
 [hyprmoncfg panel](https://github.com/crmne/omarchy-hyprmoncfg), version 2.11.0 or newer. Until it is available, the live spatial overview stays
 usable. Setup has two stages:
@@ -97,7 +115,10 @@ The runtime test uses real Qt/Omarchy components in a Hyprland session with
 workspace dispatches captured. It never injects keyboard or mouse input or
 changes the monitor configuration. The model tests cover three-screen and
 stacked arrangements, rotation, scaling, mirrors, unplugging, connector reuse,
-stopped/older daemons, and global IDs above ten. The reconnect test runs the
+stopped/older daemons, global IDs above ten, and per display mode: block
+resolution, the numbers each screen shows, slot labels, delegated and direct
+switching, and scrolling. The runtime test also drives per display mode
+through the real delegates, including the highlight of the shown workspace. The reconnect test runs the
 production service against an isolated local socket, checks ten peer closures
 and re-subscriptions, and never contacts your running daemon.
 
