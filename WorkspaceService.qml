@@ -31,17 +31,18 @@ Item {
       if (message.protocol_version !== 1) return
       var value = null
       if (message.type === "response" && String(message.id) === root.requestId) {
-        responseTimeout.stop()
         // A late snapshot must not replace an event already received.
         if (root.eventSinceRequest) return
         // Busy snapshots are retried without throwing away the last layout.
         if (message.error) { retrySubscribe.restart(); return }
         value = message.result
       } else if (message.type === "event" && message.event === "status") value = message.data
+      // The watchdog keeps running until a status validates, so an invalid
+      // reply ends in a reconnect instead of a stale layout.
       if (!value || value.schema_version !== 1 || !Array.isArray(value.monitors)) return
+      responseTimeout.stop()
       if (message.type === "event") {
         root.eventSinceRequest = true
-        responseTimeout.stop()
         retrySubscribe.stop()
       }
       root.document = value
