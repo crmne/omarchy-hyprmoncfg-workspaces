@@ -1,15 +1,36 @@
 #!/usr/bin/env ruby
 require 'json'
-require 'open3'
 
 module PanelSetup
   ID = 'crmne.hyprmoncfg'
   URL = 'https://github.com/crmne/omarchy-hyprmoncfg'
 
+  LIMIT = 1_048_576
+
+  # Runs a command and returns its output while reading at most `limit` bytes,
+  # or nil when it fails or prints more: such a command is stopped at once.
+  def self.capture(*command, limit: LIMIT)
+    out = +''
+    IO.popen(command, in: File::NULL, err: File::NULL) do |io|
+      loop do
+        out << io.readpartial(65_536)
+        next if out.bytesize <= limit
+        out = nil
+        Process.kill('TERM', io.pid)
+        break
+      rescue EOFError
+        break
+      end
+    end
+    out if $?.success?
+  rescue Errno::ENOENT, Errno::ESRCH
+    nil
+  end
+
   class Omarchy
     def plugins
-      out, _, result = Open3.capture3('timeout', '5s', 'omarchy', 'plugin', 'list', '--json')
-      raise 'Could not check installed panels. Reopen the picker and try again.' unless result.success? && out.bytesize < 1_048_576
+      out = PanelSetup.capture('timeout', '5s', 'omarchy', 'plugin', 'list', '--json')
+      raise 'Could not check installed panels. Reopen the picker and try again.' unless out && out.bytesize < LIMIT
       entries = JSON.parse(out)
       raise 'Invalid plugin list.' unless entries.is_a?(Array)
       entries
@@ -20,13 +41,11 @@ module PanelSetup
     end
 
     def open_workspace(origin)
-      out, _, result = Open3.capture3('omarchy-shell', 'crmne.hyprmoncfg.editor', 'workspaces', origin)
-      result.success? && out.strip == 'ok'
+      PanelSetup.capture('omarchy-shell', 'crmne.hyprmoncfg.editor', 'workspaces', origin, limit: 4096)&.strip == 'ok'
     end
 
     def open_panel
-      out, _, result = Open3.capture3('omarchy-shell', 'shell', 'summon', ID, '{}')
-      result.success? && out.strip == 'ok'
+      PanelSetup.capture('omarchy-shell', 'shell', 'summon', ID, '{}', limit: 4096)&.strip == 'ok'
     end
 
     def wait = sleep(0.25)

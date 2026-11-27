@@ -1,4 +1,5 @@
 require 'minitest/autorun'
+require 'tmpdir'
 require_relative '../scripts/setup-panel'
 
 class PanelSetupTest < Minitest::Test
@@ -54,6 +55,32 @@ class PanelSetupTest < Minitest::Test
     host=Host.new(panel:panel(true))
     PanelSetup.run(host,'install','{}')
     assert_equal [[:open,'{}']],host.calls
+  end
+  def with_fake_omarchy(script)
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'omarchy')
+      File.write(path, "#!/bin/sh\n#{script}\n")
+      File.chmod(0o755, path)
+      original = ENV['PATH']
+      ENV['PATH'] = "#{dir}:#{original}"
+      yield
+    ensure
+      ENV['PATH'] = original
+    end
+  end
+  def test_plugin_list_is_read_up_to_its_limit_and_then_stopped
+    with_fake_omarchy('head -c 2000000 /dev/zero | tr "\\0" x; sleep 4') do
+      started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      error = assert_raises(RuntimeError) { PanelSetup::Omarchy.new.plugins }
+      assert_match(/Could not check installed panels/, error.message)
+      assert_operator Process.clock_gettime(Process::CLOCK_MONOTONIC) - started, :<, 2,
+        'the oversized plugin list was read to the end instead of stopped at the limit'
+    end
+  end
+  def test_plugin_list_within_the_limit_is_parsed
+    with_fake_omarchy(%q(printf '[{"id":"crmne.hyprmoncfg","enabled":true}]')) do
+      assert_equal [{'id'=>PanelSetup::ID,'enabled'=>true}], PanelSetup::Omarchy.new.plugins
+    end
   end
   def test_invalid_input_never_runs_commands
     host=Host.new

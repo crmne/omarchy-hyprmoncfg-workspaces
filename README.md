@@ -125,6 +125,8 @@ and re-subscriptions, and never contacts your running daemon. The limits test
 does the same with a misbehaving fake daemon: a line that never ends is cut
 off at 4 MiB, a reply with an invalid status leaves the response watchdog
 running until it reconnects, and a character split between two reads is
-repaired with a fresh snapshot.
+repaired with a fresh snapshot. It also checks that a probe printing more than
+its limit is stopped at once. The setup helper's tests check the same limit on
+`omarchy plugin list`.
 
 MIT licensed. Uses Omarchy's standard UI components and theme.

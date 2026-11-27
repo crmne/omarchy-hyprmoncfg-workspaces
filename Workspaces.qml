@@ -32,7 +32,7 @@ BarWidget {
   // The planner remains the panel's real editor, including its preview guard.
   property var plannerLauncher: function(origin) {
     plannerRequest.command = ["omarchy-shell", "crmne.hyprmoncfg.editor", "workspaces", JSON.stringify(origin)]
-    plannerRequest.running = true
+    plannerRequest.start()
   }
   // The compositor boundary is injectable for real-QML interaction tests.
   property var workspaceDispatcher: function(request) { Hyprland.dispatch(request) }
@@ -146,21 +146,22 @@ BarWidget {
     function refresh(): void { root.broadcast("refresh") }
   }
 
-  Process {
+  // Both probes stop a command that prints more than their limit.
+  LimitedProcess {
     id: plannerRequest
-    stdout: StdioCollector { id: plannerOutput; waitForEnd: true }
-    onExited: function(exitCode) {
+    limit: 4096
+    onDone: function(exitCode, text) {
       if (!root.plannerOpening) return
-      if (exitCode === 0 && plannerOutput.text.trim() === "ok") root.finishPlannerOpen(true)
-      else panelProbe.running = true
+      if (exitCode === 0 && text.trim() === "ok") root.finishPlannerOpen(true)
+      else panelProbe.start()
     }
   }
-  Process {
+  LimitedProcess {
     id: panelProbe
     command: ["timeout", "5s", "omarchy", "plugin", "list", "--json"]
-    stdout: StdioCollector { id: panelOutput; waitForEnd: true }
-    onExited: function(exitCode) {
-      root.panelSetupState = Setup.state(panelOutput.text, exitCode, plannerOutput.text.trim())
+    limit: 1048576
+    onDone: function(exitCode, text) {
+      root.panelSetupState = Setup.state(text, exitCode, plannerRequest.text.trim())
       root.finishPlannerOpen(false)
     }
   }

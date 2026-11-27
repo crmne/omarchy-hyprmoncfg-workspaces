@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
-# The production WorkspaceService in an offscreen Quickshell against a fake
-# daemon: an endless line is cut off at 4 MiB, an invalid reply leaves the
-# watchdog running until it reconnects, and a character split between two
-# reads is repaired.
+# The production WorkspaceService and LimitedProcess in an offscreen Quickshell
+# against a fake daemon: an endless line is cut off at 4 MiB, an invalid reply
+# leaves the watchdog running until it reconnects, a character split between
+# two reads is repaired, and a probe that prints too much is stopped.
 require 'fileutils'
 require 'json'
 require 'open3'
@@ -18,12 +18,25 @@ status = ->(id, extra = {}) { JSON.generate({type: 'response', protocol_version:
 Dir.mktmpdir('l-', cache) do |stage|
   runtime = File.join(stage, 'rt')
   FileUtils.mkdir_p(runtime, mode: 0o700)
-  %w[WorkspaceService.qml].each { |name| FileUtils.cp(File.join(root, name), stage) }
+  %w[WorkspaceService.qml LimitedProcess.qml].each { |name| FileUtils.cp(File.join(root, name), stage) }
   File.write(File.join(stage, 'shell.qml'), <<~QML)
     import QtQuick
     import Quickshell
     ShellRoot {
       WorkspaceService { id: service }
+      LimitedProcess {
+        id: flood
+        command: ["sh", "-c", "head -c 3000000 /dev/zero | tr '\\\\0' x; sleep 20"]
+        property real started: 0
+        onDone: function(code, text) {
+          console.log("PROBE", code, text.length, Date.now() - started < 5000 ? "prompt" : "late")
+        }
+      }
+      LimitedProcess {
+        id: small
+        command: ["printf", "ok"]
+        onDone: function(code, text) { console.log("SMALL", code, JSON.stringify(text)) }
+      }
       Timer {
         interval: 20; repeat: true; running: true
         property string last: ""
@@ -32,6 +45,7 @@ Dir.mktmpdir('l-', cache) do |stage|
           if (line !== last) { console.log("STATE", line); last = line }
         }
       }
+      Component.onCompleted: { flood.started = Date.now(); flood.start(); small.start() }
     }
   QML
   server = UNIXServer.new(File.join(runtime, 'hyprmoncfgd.sock'))
@@ -86,7 +100,9 @@ Dir.mktmpdir('l-', cache) do |stage|
   checks = {
     'the endless line is cut off near 4 MiB' => events.any? { |e| e =~ /flood cut off after ([0-9]+) MiB/ && $1.to_i < 16 },
     'an invalid reply ends in a reconnect' => events.any? { |e| e =~ /invalid reply closed after ([0-9]+)s/ && $1.to_i <= 8 },
-    'a split character is repaired' => events.include?('repair requested') && output.include?('STATE true true "Grüße"')
+    'a split character is repaired' => events.include?('repair requested') && output.include?('STATE true true "Grüße"'),
+    'an oversized probe is stopped at once' => output.match?(/PROBE -1 0 prompt/),
+    'a small probe is read whole' => output.include?('SMALL 0 "ok"')
   }
   failed = checks.reject { |_, ok| ok }.keys
   unless failed.empty?
