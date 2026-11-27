@@ -108,6 +108,7 @@ node --test tests/*.test.js
 omarchy plugin validate .
 ruby tests/runtime.rb
 ruby tests/reconnect.rb
+ruby tests/limits.rb
 ruby tests/setup-panel.rb
 ```
 
@@ -120,6 +121,10 @@ resolution, the numbers each screen shows, slot labels, delegated and direct
 switching, and scrolling. The runtime test also drives per display mode
 through the real delegates, including the highlight of the shown workspace. The reconnect test runs the
 production service against an isolated local socket, checks ten peer closures
-and re-subscriptions, and never contacts your running daemon.
+and re-subscriptions, and never contacts your running daemon. The limits test
+does the same with a misbehaving fake daemon: a line that never ends is cut
+off at 4 MiB, a reply with an invalid status leaves the response watchdog
+running until it reconnects, and a character split between two reads is
+repaired with a fresh snapshot.
 
 MIT licensed. Uses Omarchy's standard UI components and theme.
